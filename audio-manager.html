@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音频文件管理 - 汉语拼音学习助手</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        .audio-manager {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .manager-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .manager-header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .manager-header p {
+            color: #7f8c8d;
+            font-size: 16px;
+        }
+        
+        .control-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .control-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(149, 165, 166, 0.3);
+        }
+        
+        .status-info {
+            background: #ecf0f1;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .status-info h3 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+        }
+        
+        .status-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .pinyin-grid {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .pinyin-section {
+            margin-bottom: 30px;
+        }
+        
+        .pinyin-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        
+        .pinyin-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+        }
+        
+        .pinyin-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .pinyin-item.loaded {
+            border-color: #27ae60;
+            background: #d5f4e6;
+        }
+        
+        .pinyin-item.not-loaded {
+            border-color: #e74c3c;
+            background: #fadbd8;
+        }
+        
+        .pinyin-letter {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .pinyin-status {
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: white;
+        }
+        
+        .status-loaded {
+            background: #27ae60;
+        }
+        
+        .status-not-loaded {
+            background: #e74c3c;
+        }
+        
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .audio-manager {
+                padding: 15px;
+            }
+            
+            .control-buttons {
+                flex-direction: column;
+            }
+            
+            .pinyin-items {
+                grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            }
+            
+            .back-button {
+                position: static;
+                margin-bottom: 20px;
+                align-self: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">
+        ← 返回主页
+    </a>
+    
+    <div class="audio-manager">
+        <div class="manager-header">
+            <h1>音频文件管理</h1>
+            <p>管理拼音字母的音频文件，支持从本地目录批量加载</p>
+        </div>
+        
+        <div class="control-panel">
+            <div class="control-buttons">
+                <button id="selectDirectoryBtn" class="btn-primary">
+                    📁 选择音频目录
+                </button>
+                <button id="clearAudioBtn" class="btn-secondary">
+                    🗑️ 清除所有音频
+                </button>
+                <button id="refreshStatusBtn" class="btn-secondary">
+                    🔄 刷新状态
+                </button>
+            </div>
+            
+            <div class="status-info">
+                <h3>加载状态</h3>
+                <div class="status-stats">
+                    <div class="stat-item">
+                        <div class="stat-number" id="loadedCount">0</div>
+                        <div class="stat-label">已加载</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalCount">46</div>
+                        <div class="stat-label">总数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="loadedPercent">0%</div>
+                        <div class="stat-label">完成度</div>
+                    </div>
+                </div>
+                <div id="statusMessage" style="margin-top: 15px; color: #7f8c8d;">请选择包含音频文件的目录</div>
+            </div>
+        </div>
+        
+        <div class="pinyin-grid">
+            <div class="pinyin-section">
+                <h3>声母 (23个)</h3>
+                <div class="pinyin-items" id="initialsGrid"></div>
+            </div>
+            
+            <div class="pinyin-section">
+                <h3>韵母 (23个)</h3>
+                <div class="pinyin-items" id="finalsGrid"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/audio-loader.js"></script>
+    <script>
+        // 声母列表
+        const initials = ['b', 'p', 'm', 'f', 'd', 't', 'n', 'l', 'g', 'k', 'h', 'j', 'q', 'x', 'zh', 'ch', 'sh', 'r', 'z', 'c', 's', 'y', 'w'];
+        
+        // 韵母列表
+        const finals = ['a', 'o', 'e', 'i', 'u', 'v', 'ai', 'ei', 'ui', 'ao', 'ou', 'iu', 'ie', 've', 'an', 'en', 'in', 'un', 'vn', 'ang', 'eng', 'ing', 'ong'];
+        
+        let audioLoader = null;
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            audioLoader = new AudioLoader();
+            
+            // 监听音频加载事件
+            audioLoader.addEventListener('audioLoaded', updateDisplay);
+            audioLoader.addEventListener('audioCleared', updateDisplay);
+            
+            // 绑定按钮事件
+            document.getElementById('selectDirectoryBtn').addEventListener('click', selectDirectory);
+            document.getElementById('clearAudioBtn').addEventListener('click', clearAudio);
+            document.getElementById('refreshStatusBtn').addEventListener('click', updateDisplay);
+            
+            // 初始化显示
+            initializeGrid();
+            updateDisplay();
+        });
+        
+        // 初始化拼音网格
+        function initializeGrid() {
+            const initialsGrid = document.getElementById('initialsGrid');
+            const finalsGrid = document.getElementById('finalsGrid');
+            
+            // 创建声母项目
+            initials.forEach(letter => {
+                const item = createPinyinItem(letter);
+                initialsGrid.appendChild(item);
+            });
+            
+            // 创建韵母项目
+            finals.forEach(letter => {
+                const item = createPinyinItem(letter);
+                finalsGrid.appendChild(item);
+            });
+        }
+        
+        // 创建拼音项目
+        function createPinyinItem(letter) {
+            const item = document.createElement('div');
+            item.className = 'pinyin-item';
+            item.dataset.letter = letter;
+            
+            item.innerHTML = `
+                <div class="pinyin-letter">${letter}</div>
+                <div class="pinyin-status">未加载</div>
+            `;
+            
+            // 点击播放音频
+            item.addEventListener('click', () => {
+                if (audioLoader && audioLoader.hasAudio(letter)) {
+                    audioLoader.playAudio(letter);
+                }
+            });
+            
+            return item;
+        }
+        
+        // 选择目录
+        async function selectDirectory() {
+            try {
+                const result = await audioLoader.selectDirectory();
+                if (result.success) {
+                    document.getElementById('statusMessage').textContent = 
+                        `成功加载 ${result.loadedCount} 个音频文件`;
+                    updateDisplay();
+                } else {
+                    document.getElementById('statusMessage').textContent = 
+                        result.message || '加载失败';
+                }
+            } catch (error) {
+                console.error('选择目录失败:', error);
+                document.getElementById('statusMessage').textContent = '选择目录失败: ' + error.message;
+            }
+        }
+        
+        // 清除音频
+        function clearAudio() {
+            if (confirm('确定要清除所有已加载的音频文件吗？')) {
+                audioLoader.clearAll();
+                document.getElementById('statusMessage').textContent = '已清除所有音频文件';
+                updateDisplay();
+            }
+        }
+        
+        // 更新显示
+        function updateDisplay() {
+            if (!audioLoader) return;
+            
+            const stats = audioLoader.getStats();
+            const allPinyins = [...initials, ...finals];
+            
+            // 更新统计信息
+            document.getElementById('loadedCount').textContent = stats.loadedCount;
+            document.getElementById('totalCount').textContent = stats.totalCount;
+            document.getElementById('loadedPercent').textContent = 
+                Math.round((stats.loadedCount / stats.totalCount) * 100) + '%';
+            
+            // 更新拼音项目状态
+            allPinyins.forEach(letter => {
+                const item = document.querySelector(`[data-letter="${letter}"]`);
+                if (item) {
+                    const hasAudio = audioLoader.hasAudio(letter);
+                    const statusElement = item.querySelector('.pinyin-status');
+                    
+                    if (hasAudio) {
+                        item.className = 'pinyin-item loaded';
+                        statusElement.textContent = '已加载';
+                        statusElement.className = 'pinyin-status status-loaded';
+                    } else {
+                        item.className = 'pinyin-item not-loaded';
+                        statusElement.textContent = '未加载';
+                        statusElement.className = 'pinyin-status status-not-loaded';
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
